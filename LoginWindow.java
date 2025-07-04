@@ -229,7 +229,7 @@ public class LoginWindow extends JFrame implements ActionListener, DocumentListe
                     messageLabel.setForeground(INVIGORATING_GREEN);
 
                     this.dispose(); // Close the current login window
-                    new MainWindow(); // Create and open the new main window (assuming it exists)
+                    new FitnessAppGUI(username); // Create and open the new main window (assuming it exists)
 
                 } else {
                     messageLabel.setText("Benutzername nicht gefunden.");

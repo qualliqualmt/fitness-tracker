@@ -7,16 +7,16 @@ public class FitnessAppGUI extends JFrame  {
     private JPanel mainPanel;
     private ArrayList<ExercisePanel> exercises ;
     private ArrayList<String> exerciseNames = new ArrayList<>(); // Liste der verfügbaren Übungsnamen
-    private String username = "Manuel";
+     private String username;
     private static final String BASE_DIR = "users";
 
-    public FitnessAppGUI() {
+    public FitnessAppGUI(String name) {
         setTitle("Fitness App");
         setSize(700, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-        
+        username = name;
         exercises = new ArrayList<>();
 
         // Menüleiste oben rechts mit "Übungen"-Button
@@ -258,11 +258,6 @@ public class FitnessAppGUI extends JFrame  {
                 // Fehler ignorieren oder loggen
             }
         }
-    }
-
-    
-    public static void main(String[] args) {
-        new FitnessAppGUI();
     }
 
 }
