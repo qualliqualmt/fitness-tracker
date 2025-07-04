@@ -37,7 +37,6 @@ public class FitnessAppGUI extends JFrame  {
         add(addExerciseButton, BorderLayout.SOUTH);
 
         loadExerciseNames(); // Übungen beim Start laden
-        FitnessApp.createUser("Manuel"); // Benutzer anlegen, falls nicht vorhanden
         setVisible(true);
     }
 

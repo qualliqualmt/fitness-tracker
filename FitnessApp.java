@@ -6,23 +6,7 @@ public class FitnessApp{
 
     private static final String BASE_DIR = "users";
 
-    // Benutzer anlegen
-    public static boolean createUser(String username) {
-        File userDir = new File(BASE_DIR, username);
-        if (userDir.exists()) {
-            return false; // Benutzer existiert bereits
-        } else {
-            return userDir.mkdirs();
-        }
-    }
-
-    // Alle Benutzer auflisten
-    public static List<String> listUsers() {
-        File base = new File(BASE_DIR);
-        String[] users = base.list((dir, name) -> new File(dir, name).isDirectory());
-        if (users == null) return new ArrayList<>();
-        return Arrays.asList(users);
-    }
+    
 
     // Neue Übung anlegen
     public static boolean createExercise(String username, String exName) {
