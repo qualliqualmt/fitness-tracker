@@ -1,0 +1,7 @@
+#BlueJ class context
+comment0.target=MainWindow
+comment0.text=\r\n\ The\ MainWindow\ class\ represents\ the\ main\ application\ window\r\n\ that\ appears\ after\ a\ successful\ login.\r\n\ This\ version\ is\ intentionally\ empty,\ providing\ only\ the\ basic\ window\ frame.\r\n
+comment1.params=
+comment1.target=MainWindow()
+comment1.text=\r\n\ Constructor\ for\ the\ MainWindow\ class.\r\n\ Initializes\ the\ main\ application\ window.\r\n
+numComments=2
