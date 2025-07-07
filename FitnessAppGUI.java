@@ -2,27 +2,43 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
+import com.formdev.flatlaf.*;
+import javax.swing.border.LineBorder;
 
 public class FitnessAppGUI extends JFrame  {
     private JPanel mainPanel;
     private ArrayList<ExercisePanel> exercises ;
     private ArrayList<String> exerciseNames = new ArrayList<>(); // Liste der verfügbaren Übungsnamen
-     private String username;
+    private String username;
     private static final String BASE_DIR = "users";
+    
 
+    
+    
     public FitnessAppGUI(String name) {
         setTitle("Fitness App");
+        ToolTipManager.sharedInstance().setInitialDelay(500);
+        ToolTipManager.sharedInstance().setDismissDelay(100000); 
         setSize(700, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-        username = name;
+        username = name; 
         exercises = new ArrayList<>();
-
+        try {
+        UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (Exception e) {
+            System.err.println("FlatLaf konnte nicht geladen werden");
+        }
+        //UIManager.put("TitledBorder.titleFont", UIManager.getFont("Label.font").deriveFont(Font.BOLD, 30f));
+        UIManager.put("TitledBorder.font",
+        new Font("Arial", Font.BOLD, 18)); 
+        
         // Menüleiste oben rechts mit "Übungen"-Button
         JPanel topPanel = new JPanel(new BorderLayout());
         JButton addExerciseNameButton = new JButton("Übungen");
         addExerciseNameButton.addActionListener(e -> openExerciseNameEditor());
+        addExerciseNameButton.setToolTipText("Öffnet den Editor für Übungsnamen");
         topPanel.add(addExerciseNameButton, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
@@ -35,7 +51,9 @@ public class FitnessAppGUI extends JFrame  {
         JButton addExerciseButton = new JButton("Übung +");
         addExerciseButton.addActionListener(e -> promptForExercise());
         add(addExerciseButton, BorderLayout.SOUTH);
+        addExerciseButton.setToolTipText("Neue Übung hinzufügen"); // Platzhalter
 
+        
         loadExerciseNames(); // Übungen beim Start laden
         setVisible(true);
     }
@@ -63,6 +81,7 @@ public class FitnessAppGUI extends JFrame  {
 
     private void openExerciseNameEditor() {
         JTextField newNameField = new JTextField(15);
+        newNameField.setToolTipText("Tooltip: Hier neuen Übungsnamen eingeben"); // Platzhalter
         DefaultListModel<String> listModel = new DefaultListModel<>();
         for (String name : exerciseNames) {
             listModel.addElement(name);
@@ -99,6 +118,7 @@ public class FitnessAppGUI extends JFrame  {
     private void addExercise(String title) {
         ExercisePanel newExercise = new ExercisePanel(title);
         exercises.add(newExercise);
+        mainPanel.add(Box.createVerticalStrut(15));
         mainPanel.add(newExercise);
         mainPanel.revalidate();
         mainPanel.repaint();
@@ -114,8 +134,8 @@ public class FitnessAppGUI extends JFrame  {
 
     public ExercisePanel(String title) {
         this.title = title;
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createTitledBorder(title));
+        setLayout(new BorderLayout());        
+        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10,10,10,10), title));
 
         sets = new ArrayList<>();
         setsPanel = new JPanel();
@@ -128,9 +148,11 @@ public class FitnessAppGUI extends JFrame  {
         addSetButton.addActionListener(e -> {
             if (!abgeschlossen) addSet();
         });
-
+        addSetButton.setToolTipText("Neuen Satz hinzufügen"); // Platzhalter
         JButton finishButton = new JButton("Übung abschließen");
         finishButton.addActionListener(e -> abschliessen());
+        finishButton.setToolTipText("Übung abschließen und speichern"); // Platzhalter
+
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(addSetButton);
@@ -138,12 +160,16 @@ public class FitnessAppGUI extends JFrame  {
 
         add(setScrollPane, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
-
+        
+        setsPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        buttonPanel.add(Box.createHorizontalStrut(40)); // Abstand dazwischen
+        
         addSet(); // Erste Set-Zeile hinzufügen
     }
 
     private void addSet() {
-        RowPanel newRow = new RowPanel();
+        RowPanel newRow = new RowPanel(title);
         sets.add(newRow);
         setsPanel.add(newRow);
         setsPanel.revalidate();
@@ -188,15 +214,21 @@ public class FitnessAppGUI extends JFrame  {
     private JTextField weightField;
     private JTextField repsField;
     private JLabel infoLabel;
+    private String title;
 
-    public RowPanel() {
+    public RowPanel(String newtitle) {
+        title = newtitle;
         setLayout(new FlowLayout(FlowLayout.LEFT));
         setMaximumSize(new Dimension(500, 40));
         setPreferredSize(new Dimension(500, 40));
 
-        infoLabel = new JLabel("Info:");
+        infoLabel = new JLabel("Gewicht Vorschlag: " + FitnessApp.calculateNextWeight(username, title));
         weightField = new JTextField(5);
         repsField = new JTextField(5);
+        weightField.setToolTipText("Gewicht eingeben (kg)"); // Platzhalter
+        repsField.setToolTipText("Wiederholungen eingeben"); // Platzhalter
+        infoLabel.setToolTipText("Gewichtsvorschlag basierend auf vorheriger Leistung"); // Platzhalter
+
 
         add(infoLabel);
         add(new JLabel("Gewicht:"));
@@ -227,7 +259,7 @@ public class FitnessAppGUI extends JFrame  {
         String heute = java.time.LocalDate.now().toString();
         return heute;
     }
-
+    
     // Speichert die Übungsnamen dauerhaft in users/<username>/exercises.txt
     private void saveExerciseNames() {
         try {
@@ -260,3 +292,4 @@ public class FitnessAppGUI extends JFrame  {
     }
 
 }
+
