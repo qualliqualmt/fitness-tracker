@@ -24,6 +24,10 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
     private JButton addRecordButton;
     private JButton calculateWeightButton;
     private JLabel suggestionLabel;
+    private JPanel addRecordPanel; // Panel for dynamic input fields
+    private List<JTextField> repsFields = new ArrayList<>();
+    private List<JTextField> weightFields = new ArrayList<>();
+    private JButton finishAddRecordButton;
 
     /**
      * Constructor for the FitnessAppGUI class.
@@ -104,56 +108,15 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
         gbc.weightx = 1.0; gbc.weighty = 1.0; // Allow text area to grow
         centerPanel.add(scrollPane, gbc);
 
-        // Add Record Button
-        addRecordButton = new RoundedButton("Satz hinzufügen", Color.decode("#28A745"), Color.WHITE);
-        addRecordButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    String selectedEx = (String) exerciseDropdown.getSelectedItem();
-                    if (selectedEx == null || selectedEx.isEmpty()) {
-                        JOptionPane.showMessageDialog(FitnessAppGUI.this, "Bitte wählen Sie eine Übung aus oder erstellen Sie eine neue.", "Fehler", JOptionPane.WARNING_MESSAGE); // Changed reference
-                        return;
-                    }
-
-                    // Prompt for multiple sets in one string
-                    String setsInput = JOptionPane.showInputDialog(FitnessAppGUI.this, "Geben Sie Sätze ein (z.B. '8,50;7,55;6,60' für Wdh,Gewicht;Wdh,Gewicht;...):");
-                    if (setsInput == null || setsInput.trim().isEmpty()) {
-                        return; // User cancelled or entered empty string
-                    }
-
-                    List<Integer> repsAndWeights = new ArrayList<>();
-                    try {
-                        String[] setPairs = setsInput.split(";");
-                        for (String pair : setPairs) {
-                            String[] parts = pair.split(",");
-                            if (parts.length == 2) {
-                                repsAndWeights.add(Integer.parseInt(parts[0].trim())); // Reps
-                                repsAndWeights.add(Integer.parseInt(parts[1].trim())); // Weight
-                            } else {
-                                throw new IllegalArgumentException("Ungültiges Satzformat: " + pair);
-                            }
-                        }
-
-                        String date = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
-                        if (addRecord(currentLoggedInUser, selectedEx, date, repsAndWeights)) {
-                            JOptionPane.showMessageDialog(FitnessAppGUI.this, "Satz erfolgreich hinzugefügt.");
-                            displayRecords(selectedEx); // Refresh records display
-                        } else {
-                            JOptionPane.showMessageDialog(FitnessAppGUI.this, "Fehler beim Hinzufügen des Satzes.", "Fehler", JOptionPane.ERROR_MESSAGE);
-                        }
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(FitnessAppGUI.this, "Ungültige Eingabe für Wiederholungen oder Gewicht. Bitte nur Zahlen verwenden.", "Fehler", JOptionPane.ERROR_MESSAGE);
-                    } catch (IllegalArgumentException ex) {
-                        JOptionPane.showMessageDialog(FitnessAppGUI.this, "Fehler im Eingabeformat: " + ex.getMessage() + "\nErwartetes Format: 'Wdh,Gewicht;Wdh,Gewicht'", "Fehler", JOptionPane.ERROR_MESSAGE);
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(FitnessAppGUI.this, "Ein unerwarteter Fehler ist aufgetreten: " + ex.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            });
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.WEST;
-        centerPanel.add(addRecordButton, gbc);
+        // --- Add Record Panel (dynamic input fields) ---
+        addRecordPanel = new JPanel();
+        addRecordPanel.setLayout(new BoxLayout(addRecordPanel, BoxLayout.Y_AXIS));
+        addRecordPanel.setBackground(Color.decode("#343A40"));
+        addRecordPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.WEST;
+        centerPanel.add(addRecordPanel, gbc);
+        setupAddRecordPanel();
 
         // Calculate Next Weight Button
         calculateWeightButton = new RoundedButton("Nächstes Gewicht vorschlagen", Color.decode("#FFC107"), Color.BLACK);
@@ -175,14 +138,14 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
                     }
                 }
             });
-        gbc.gridx = 1; gbc.gridy = 2; gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.CENTER;
         centerPanel.add(calculateWeightButton, gbc);
 
         // Suggestion Label
         suggestionLabel = new JLabel(" ");
         suggestionLabel.setForeground(Color.WHITE);
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 3;
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.CENTER;
         centerPanel.add(suggestionLabel, gbc);
 
@@ -432,8 +395,144 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
      * This allows you to run the FitnessAppGUI directly without going through the LoginWindow.
      * @param args Command line arguments (not used).
      */
-    public static void main(String[] args) {
-        // For testing purposes, you can pass a dummy username
-        SwingUtilities.invokeLater(() -> new FitnessAppGUI("testuser")); // Changed constructor call
+
+    // Simple RoundedButton implementation as an inner class
+    private static class RoundedButton extends JButton {
+        private Color backgroundColor;
+        private Color foregroundColor;
+
+        public RoundedButton(String text, Color backgroundColor, Color foregroundColor) {
+            super(text);
+            this.backgroundColor = backgroundColor;
+            this.foregroundColor = foregroundColor;
+            setContentAreaFilled(false);
+            setFocusPainted(false);
+            setForeground(foregroundColor);
+            setFont(new Font("Arial", Font.BOLD, 14));
+            setMargin(new Insets(8, 16, 8, 16));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(backgroundColor);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            super.paintComponent(g2);
+            g2.dispose();
+        }
+
+        @Override
+        public void updateUI() {
+            super.updateUI();
+            setContentAreaFilled(false);
+        }
+    }
+
+    /**
+     * Sets up the dynamic add record panel for entering sets.
+     */
+    private void setupAddRecordPanel() {
+        addRecordPanel.removeAll();
+        repsFields.clear();
+        weightFields.clear();
+
+        JPanel firstSetPanel = createSetInputPanel(0);
+        addRecordPanel.add(firstSetPanel);
+        addRecordPanel.add(Box.createVerticalStrut(5));
+
+        finishAddRecordButton = new RoundedButton("Fertig", Color.decode("#28A745"), Color.WHITE);
+        finishAddRecordButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        finishAddRecordButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedEx = (String) exerciseDropdown.getSelectedItem();
+                if (selectedEx == null || selectedEx.isEmpty()) {
+                    JOptionPane.showMessageDialog(FitnessAppGUI.this, "Bitte wählen Sie eine Übung aus.", "Fehler", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                List<Integer> repsAndWeights = new ArrayList<>();
+                for (int i = 0; i < repsFields.size(); i++) {
+                    String repsText = repsFields.get(i).getText().trim();
+                    String weightText = weightFields.get(i).getText().trim();
+                    if (!repsText.isEmpty() && !weightText.isEmpty()) {
+                        try {
+                            repsAndWeights.add(Integer.parseInt(repsText));
+                            repsAndWeights.add(Integer.parseInt(weightText));
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(FitnessAppGUI.this, "Ungültige Eingabe für Satz " + (i+1) + ". Bitte nur Zahlen verwenden.", "Fehler", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+                if (repsAndWeights.isEmpty()) {
+                    JOptionPane.showMessageDialog(FitnessAppGUI.this, "Bitte mindestens einen vollständigen Satz eingeben.", "Fehler", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                String date = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
+                if (addRecord(currentLoggedInUser, selectedEx, date, repsAndWeights)) {
+                    JOptionPane.showMessageDialog(FitnessAppGUI.this, "Sätze erfolgreich hinzugefügt.");
+                    displayRecords(selectedEx);
+                    setupAddRecordPanel(); // Reset input fields
+                } else {
+                    JOptionPane.showMessageDialog(FitnessAppGUI.this, "Fehler beim Hinzufügen der Sätze.", "Fehler", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        addRecordPanel.add(finishAddRecordButton);
+        addRecordPanel.revalidate();
+        addRecordPanel.repaint();
+    }
+
+    /**
+     * Creates a panel for a single set input (Reps, Weight).
+     * Adds listeners to show next set fields when both are filled.
+     */
+    private JPanel createSetInputPanel(int index) {
+        JPanel setPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        setPanel.setBackground(Color.decode("#343A40"));
+        JLabel repsLabel = new JLabel("Wdh:");
+        repsLabel.setForeground(Color.WHITE);
+        JTextField repsField = new JTextField(4);
+        repsFields.add(repsField);
+        JLabel weightLabel = new JLabel("Gewicht:");
+        weightLabel.setForeground(Color.WHITE);
+        JTextField weightField = new JTextField(4);
+        weightFields.add(weightField);
+        setPanel.add(new JLabel("Satz " + (index+1) + ": "));
+        setPanel.add(repsLabel);
+        setPanel.add(repsField);
+        setPanel.add(weightLabel);
+        setPanel.add(weightField);
+
+        repsField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { checkAndAddNextSet(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { checkAndAddNextSet(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { checkAndAddNextSet(); }
+            private void checkAndAddNextSet() {
+                if (index == repsFields.size()-1 && !repsField.getText().trim().isEmpty() && !weightField.getText().trim().isEmpty()) {
+                    JPanel nextSetPanel = createSetInputPanel(index+1);
+                    addRecordPanel.add(nextSetPanel, addRecordPanel.getComponentCount()-1); // Before finish button
+                    addRecordPanel.add(Box.createVerticalStrut(5), addRecordPanel.getComponentCount()-1);
+                    addRecordPanel.revalidate();
+                    addRecordPanel.repaint();
+                }
+            }
+        });
+        weightField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { checkAndAddNextSet(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { checkAndAddNextSet(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { checkAndAddNextSet(); }
+            private void checkAndAddNextSet() {
+                if (index == repsFields.size()-1 && !repsField.getText().trim().isEmpty() && !weightField.getText().trim().isEmpty()) {
+                    JPanel nextSetPanel = createSetInputPanel(index+1);
+                    addRecordPanel.add(nextSetPanel, addRecordPanel.getComponentCount()-1); // Before finish button
+                    addRecordPanel.add(Box.createVerticalStrut(5), addRecordPanel.getComponentCount()-1);
+                    addRecordPanel.revalidate();
+                    addRecordPanel.repaint();
+                }
+            }
+        });
+        return setPanel;
     }
 }

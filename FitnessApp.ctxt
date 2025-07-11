@@ -1,0 +1,14 @@
+#BlueJ class context
+comment0.target=FitnessApp
+comment1.params=username\ exName
+comment1.target=boolean\ createExercise(java.lang.String,\ java.lang.String)
+comment2.params=username
+comment2.target=java.util.List\ listExercises(java.lang.String)
+comment3.params=username\ exName\ date\ repsAndWeights
+comment3.target=boolean\ addRecord(java.lang.String,\ java.lang.String,\ java.lang.String,\ java.util.List)
+comment4.params=username\ exName
+comment4.target=java.util.List\ getRecords(java.lang.String,\ java.lang.String)
+comment5.params=username\ exName
+comment5.target=double\ calculateNextWeight(java.lang.String,\ java.lang.String)
+comment5.text=\r\n\ Berechnet\ den\ Gewichtsvorschlag\ basierend\ auf\ dem\ Durchschnitt\ der\ Wiederholungen.\r\n\r\n\ Regeln\:\r\n\ -\ avg\ >\ 8\ \ \u2192\ +5%\ Gewicht\r\n\ -\ avg\ <\ 5\ \ \u2192\ -5%\ Gewicht\r\n\ -\ avg\ 5\u20138\ \u2192\ gleiches\ Gewicht\r\n\r\n\ @param\ username\ Benutzername\r\n\ @param\ exName\ \ \ Name\ der\ \u00DCbung\r\n\ @return\ Gewichtsvorschlag\ (auch\ wenn\ unver\u00E4ndert)\r\n
+numComments=6

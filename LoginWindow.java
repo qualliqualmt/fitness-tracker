@@ -216,8 +216,7 @@ public class LoginWindow extends JFrame implements ActionListener, DocumentListe
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        String username = userText.getText().trim().toLowerCase(); // For comparison
-        String originalUsername = userText.getText().trim(); // To pass to FitnessApp
+        String username = userText.getText().trim().toLowerCase();
 
         if (e.getSource() == loginButton) {
             // Logic for the login button
@@ -226,11 +225,11 @@ public class LoginWindow extends JFrame implements ActionListener, DocumentListe
                 messageLabel.setForeground(ENERGETIC_ORANGE);
             } else {
                 if (registeredUsernames.contains(username)) {
-                    messageLabel.setText("Anmeldung erfolgreich für '" + originalUsername + "'!"); // Display original name
+                    messageLabel.setText("Anmeldung erfolgreich für '" + userText.getText().trim() + "'!"); // Anzeige des originalen Namens
                     messageLabel.setForeground(INVIGORATING_GREEN);
 
                     this.dispose(); // Close the current login window
-                    new FitnessApp(originalUsername); // Create and open the new FitnessApp window, passing the original username
+                    new FitnessAppGUI(username); // Create and open the new main window (assuming it exists)
 
                 } else {
                     messageLabel.setText("Benutzername nicht gefunden.");
@@ -249,13 +248,14 @@ public class LoginWindow extends JFrame implements ActionListener, DocumentListe
                 registeredUsernames.add(username); // Add to in-memory set (already lowercase)
                 saveUsernames(); // Save the updated set to file
 
-                messageLabel.setText("Registrierung erfolgreich für '" + originalUsername + "'! Sie können sich jetzt anmelden."); // Display original name
+                messageLabel.setText("Registrierung erfolgreich für '" + userText.getText().trim() + "'! Sie können sich jetzt anmelden."); // Anzeige des originalen Namens
                 messageLabel.setForeground(INVIGORATING_GREEN);
-                // The username remains in the field.
-                // The register button remains correctly enabled/disabled due to the
-                // checkUsernameAvailability() call (via the DocumentListener on any changes).
-                // If the field is not cleared, the "Username already taken!" status remains,
-                // which is correct as the name is now registered.
+                // Der Benutzername bleibt im Feld stehen.
+                // Der Registrieren-Button bleibt aufgrund des checkUsernameAvailability()
+                // Aufrufs (durch den DocumentListener bei eventuellen Änderungen)
+                // korrekt aktiviert/deaktiviert. Wenn das Feld nicht geleert wird,
+                // bleibt der "Benutzername bereits vergeben!" Status, was korrekt ist,
+                // da der Name nun registriert ist.
             }
         }
     }
@@ -289,5 +289,48 @@ public class LoginWindow extends JFrame implements ActionListener, DocumentListe
                     new LoginWindow();
                 }
             });
+    }
+}
+
+// Die Klasse RoundedButton sollte in einer separaten Datei 'RoundedButton.java' liegen
+// oder als statische geschachtelte Klasse definiert werden, wenn sie nur von LoginWindow verwendet wird.
+// Für BlueJ-Projekte ist eine separate Datei oft am einfachsten.
+class RoundedButton extends JButton {
+    private Color backgroundColor;
+    private Color textColor;
+    private int arcWidth = 20;
+    private int arcHeight = 20;
+
+    public RoundedButton(String text, Color bgColor, Color fgColor) {
+        super(text);
+        this.backgroundColor = bgColor;
+        this.textColor = fgColor;
+        setOpaque(false);
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setForeground(textColor);
+        setFocusPainted(false);
+        setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(backgroundColor);
+        g2.fill(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, arcWidth, arcHeight));
+        super.paintComponent(g2);
+        g2.dispose();
+    }
+
+    @Override
+    protected void paintBorder(Graphics g) {
+        // No custom border drawn here
+    }
+
+    @Override
+    public boolean contains(int x, int y) {
+        Shape shape = new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, arcWidth, arcHeight);
+        return shape.contains(x, y);
     }
 }
