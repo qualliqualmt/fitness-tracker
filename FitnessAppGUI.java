@@ -400,16 +400,21 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
     private static class RoundedButton extends JButton {
         private Color backgroundColor;
         private Color foregroundColor;
+        private int arcWidth = 20;
+        private int arcHeight = 20;
 
         public RoundedButton(String text, Color backgroundColor, Color foregroundColor) {
             super(text);
             this.backgroundColor = backgroundColor;
             this.foregroundColor = foregroundColor;
+            setOpaque(false);
             setContentAreaFilled(false);
+            setBorderPainted(false);
             setFocusPainted(false);
             setForeground(foregroundColor);
             setFont(new Font("Arial", Font.BOLD, 14));
             setMargin(new Insets(8, 16, 8, 16));
+            setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         }
 
         @Override
@@ -417,9 +422,20 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(backgroundColor);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), arcWidth, arcHeight);
             super.paintComponent(g2);
             g2.dispose();
+        }
+
+        @Override
+        protected void paintBorder(Graphics g) {
+            // No custom border drawn here
+        }
+
+        @Override
+        public boolean contains(int x, int y) {
+            Shape shape = new java.awt.geom.RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, arcWidth, arcHeight);
+            return shape.contains(x, y);
         }
 
         @Override
