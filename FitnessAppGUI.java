@@ -66,36 +66,27 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Exercise Management
-        JLabel exLabel = new JLabel("Übung auswählen/erstellen:");
-        exLabel.setForeground(Color.WHITE);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.WEST;
-        centerPanel.add(exLabel, gbc);
-
+        // Initialize exerciseDropdown before using it
         exerciseDropdown = new JComboBox<>();
-        exerciseDropdown.setPreferredSize(new Dimension(200, 30));
-        exerciseDropdown.setBackground(Color.WHITE);
-        exerciseDropdown.setForeground(Color.BLACK);
-        gbc.gridx = 1; gbc.gridy = 0;
-        centerPanel.add(exerciseDropdown, gbc);
 
+        // Exercise Management - improved layout
+        JPanel exPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+        exPanel.setBackground(Color.decode("#343A40"));
+        JLabel exLabel = new JLabel("Übung auswählen/erstellen:");
+        exLabel.setForeground(new Color(220, 220, 220)); // Softer light gray
+        exLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        exerciseDropdown.setPreferredSize(new Dimension(220, 36));
+        exerciseDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
+        exerciseDropdown.setBackground(Color.WHITE);
+        exerciseDropdown.setForeground(Color.DARK_GRAY);
         createExerciseButton = new RoundedButton("Neue Übung", Color.decode("#007BFF"), Color.WHITE);
-        createExerciseButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    String newExName = JOptionPane.showInputDialog(FitnessAppGUI.this, "Name der neuen Übung:"); // Changed reference
-                    if (newExName != null && !newExName.trim().isEmpty()) {
-                        if (createExercise(currentLoggedInUser, newExName.trim())) {
-                            JOptionPane.showMessageDialog(FitnessAppGUI.this, "Übung '" + newExName.trim() + "' erfolgreich erstellt."); // Changed reference
-                            updateExerciseDropdown(); // Refresh the dropdown
-                        } else {
-                            JOptionPane.showMessageDialog(FitnessAppGUI.this, "Fehler: Übung '" + newExName.trim() + "' konnte nicht erstellt werden oder existiert bereits.", "Fehler", JOptionPane.ERROR_MESSAGE); // Changed reference
-                        }
-                    }
-                }
-            });
-        gbc.gridx = 2; gbc.gridy = 0;
-        centerPanel.add(createExerciseButton, gbc);
+        createExerciseButton.setFont(new Font("Arial", Font.BOLD, 16));
+        createExerciseButton.setPreferredSize(new Dimension(170, 36));
+        exPanel.add(exLabel);
+        exPanel.add(exerciseDropdown);
+        exPanel.add(createExerciseButton);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 3; gbc.anchor = GridBagConstraints.WEST; gbc.fill = GridBagConstraints.HORIZONTAL;
+        centerPanel.add(exPanel, gbc);
 
         // Records Display
         recordsDisplayArea = new JTextArea(10, 40);
@@ -129,7 +120,7 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
                         return;
                     }
                     try {
-                        double nextWeight = calculateNextWeight(currentLoggedInUser, selectedEx);
+                        double nextWeight = FitnessApp.calculateNextWeight(currentLoggedInUser, selectedEx);
                         suggestionLabel.setText("Vorgeschlagenes Gewicht für " + selectedEx + ": " + nextWeight + " kg");
                         suggestionLabel.setForeground(Color.CYAN);
                     } catch (IllegalArgumentException ex) {
@@ -333,62 +324,6 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
         }
     }
 
-    /**
-     * Berechnet den Gewichtsvorschlag basierend auf dem Durchschnitt der Wiederholungen.
-     *
-     * Regeln:
-     * - avg > 8  → +5% Gewicht
-     * - avg < 5  → -5% Gewicht
-     * - avg 5–8 → gleiches Gewicht
-     *
-     * @param username Benutzername
-     * @param exName    Name der Übung
-     * @return Gewichtsvorschlag (auch wenn unverändert)
-     */
-    public static double calculateNextWeight(String username, String exName) {
-        List<Record> records = getRecords(username, exName);
-        if (records.isEmpty()) {
-            throw new IllegalArgumentException("Keine Sätze vorhanden für diese Übung.");
-        }
-
-        // Get the last recorded weight for the calculation
-        int currentWeight = 0;
-        List<Integer> lastRepsAndWeights = records.get(records.size() - 1).repsAndWeights;
-        if (lastRepsAndWeights.size() >= 2) { // Ensure there are at least reps and weight for the first set
-            currentWeight = lastRepsAndWeights.get(1); // The weight is the second element (index 1) of the first set
-        } else {
-            throw new IllegalArgumentException("Kein Gewicht im letzten Satz gefunden.");
-        }
-
-        // Collect reps from all sets of all records
-        List<Integer> allReps = new ArrayList<>();
-        for (Record r : records) {
-            // Assuming reps are at even indices (0, 2, 4...)
-            for (int i = 0; i < r.repsAndWeights.size(); i += 2) {
-                allReps.add(r.repsAndWeights.get(i));
-            }
-        }
-
-        if (allReps.isEmpty()) {
-            throw new IllegalArgumentException("Keine Wiederholungen gefunden.");
-        }
-
-        double totalReps = 0;
-        for (int r : allReps) {
-            totalReps += r;
-        }
-        double avgReps = totalReps / allReps.size();
-
-        double nextWeight;
-        if (avgReps > 8) {
-            nextWeight = currentWeight * 1.05;
-        } else if (avgReps < 5) {
-            nextWeight = currentWeight * 0.95;
-        } else {
-            nextWeight = currentWeight;
-        }
-        return Math.round(nextWeight * 10.0) / 10.0; // Round to one decimal place
-    }
 
     /**
      * Main method for testing the FitnessAppGUI independently.
@@ -515,7 +450,10 @@ public class FitnessAppGUI extends JFrame { // Changed class name from FitnessAp
         weightLabel.setForeground(Color.WHITE);
         JTextField weightField = new JTextField(4);
         weightFields.add(weightField);
-        setPanel.add(new JLabel("Satz " + (index+1) + ": "));
+        JLabel satzLabel = new JLabel("Satz " + (index+1) + ": ");
+        satzLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Make the label bigger
+        satzLabel.setForeground(Color.LIGHT_GRAY); // Set color to light gray
+        setPanel.add(satzLabel);
         setPanel.add(repsLabel);
         setPanel.add(repsField);
         setPanel.add(weightLabel);

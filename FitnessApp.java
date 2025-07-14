@@ -26,7 +26,7 @@ public class FitnessApp{
     // Alle Übungen eines Benutzers auflisten
     public static List<String> listExercises(String username) {
         File userDir = new File(BASE_DIR, username);
-        String[] exercises = userDir.list((dir, name) -> name.endsWith(".txt"));
+        String[] exercises = userDir.list((BASE_DIR, name) -> name.endsWith(".txt"));
         if (exercises == null) return new ArrayList<>();
         List<String> result = new ArrayList<>();
         for (String ex : exercises) {
